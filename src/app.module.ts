@@ -1,8 +1,6 @@
 import { Module, HttpModule, Logger } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { Connection } from 'typeorm';
-import { KvService } from './kvService/kvService.entity';
 import { KvServiceModule } from './kvService/kvService.module';
 import { AppController } from './app.controller';
 
@@ -10,19 +8,6 @@ import { AppController } from './app.controller';
   imports: [
     ConfigModule.forRoot(),
     HttpModule,
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-
-        database: configService.get<string>('POSTGRES_DB'),
-        entities: [KvService],
-        synchronize: true,
-        logging: "all"
-      }),
-      inject: [ConfigService],
-    }),
-    TypeOrmModule.forFeature([KvService]),
     KvServiceModule
   ],
   providers: [
