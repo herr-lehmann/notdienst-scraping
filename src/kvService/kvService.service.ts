@@ -6,7 +6,6 @@ import { KvService } from './kvService.entity';
 @Injectable()
 export class KvServiceService {
   constructor(
-    @InjectRepository(KvService)
     private readonly scraper: ScrapeService
   ) { }
 

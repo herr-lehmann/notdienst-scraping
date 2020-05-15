@@ -1,6 +1,5 @@
 import { Module, HttpModule, Logger } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { Connection } from 'typeorm';
 import { KvServiceModule } from './kvService/kvService.module';
 import { AppController } from './app.controller';
 
@@ -16,5 +15,5 @@ import { AppController } from './app.controller';
   controllers: [AppController]
 })
 export class AppModule {
-  constructor(private readonly connection: Connection) { }
+  constructor() { }
 }
