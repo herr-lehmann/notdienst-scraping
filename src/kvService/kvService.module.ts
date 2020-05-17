@@ -7,7 +7,6 @@ import { ConfigModule } from "@nestjs/config";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([KvService]),
     ConfigModule
   ],
   providers: [
