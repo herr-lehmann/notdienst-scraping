@@ -34,7 +34,13 @@ export class ScrapeService {
   async scrapeKvHamburg(): Promise<KvService[]> {
     try {
       this.logger.debug('Starting browser', 'ScraperService')
-      let browser = await puppeteer.launch();
+      let browser = await puppeteer.launch({
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+        ],
+      });
+      
       this.page = await browser.newPage();
 
       this.logger.debug('Navigating to KV', 'ScraperService')
