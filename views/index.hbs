@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk"
+    crossorigin="anonymous">
+
+  <meta charset="utf-8" />
+  <title>App</title>
+</head>
+
+<body class="container">
+  <div class="row">
+    <div class="col-sm">
+
+      <h1>Dienste</h1>
+      <table class="table">
+        <thead>
+          {{!-- { "_id": 247331, "startDate": "18.05.2020, Mo", "startTime": "1900", "endDate": "19.05.2020, Di", "endTime": "0000", "kind": "Abenddienst", "status": "Übernahmevorschlag eingegangen ", "owner": "Heitmann, Nancy Bettina", "region": "West" } --}}
+          <tr>
+            <th scope="col">Beginn</th>
+            <th scope="col">Ende</th>
+            <th scope="col">Dienst</th>
+            <th scope="col">Status</th>
+            <th scope="col">Anbieter</th>
+            <th scope="col">Region</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each services}}
+          <tr id="{{this._id}}">
+            <td>{{this.startDate}} {{this.startTime}}</td>
+            <td>{{this.endDate}} {{this.endTime}}</td>
+            <td>{{this.kind}}</td>
+            <td>{{this.status}}</td>
+            <td>{{this.owner}}</td>
+            <td>{{this.region}}</td>
+          {{/each}}
+          </tr>
+        </tbody>
+      </table>
+      </ul>
+
+    </div>
+  </div>
+
+</html>
