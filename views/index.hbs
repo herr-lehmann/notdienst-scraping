@@ -16,7 +16,6 @@
       <h1>Dienste</h1>
       <table class="table">
         <thead>
-          {{!-- { "_id": 247331, "startDate": "18.05.2020, Mo", "startTime": "1900", "endDate": "19.05.2020, Di", "endTime": "0000", "kind": "Abenddienst", "status": "Übernahmevorschlag eingegangen ", "owner": "Heitmann, Nancy Bettina", "region": "West" } --}}
           <tr>
             <th scope="col">Beginn</th>
             <th scope="col">Ende</th>
@@ -28,14 +27,14 @@
         </thead>
         <tbody>
           {{#each services}}
-          <tr id="{{this._id}}">
-            <td>{{this.startDate}} {{this.startTime}}</td>
-            <td>{{this.endDate}} {{this.endTime}}</td>
+          <tr id="{{this.id}}">
+            <td>{{this.start}} </td>
+            <td>{{this.end}}</td>
             <td>{{this.kind}}</td>
             <td>{{this.status}}</td>
             <td>{{this.owner}}</td>
             <td>{{this.region}}</td>
-          {{/each}}
+            {{/each}}
           </tr>
         </tbody>
       </table>

@@ -1,6 +1,5 @@
-import { Controller, Get, Render } from '@nestjs/common';
+import { Controller, Get, Render, Logger } from '@nestjs/common';
 import { KvServiceService } from './kvService/kvService.service';
-import { KvService } from './kvService/kvService.entity';
 
 
 @Controller('notdienste')
@@ -8,9 +7,12 @@ export class AppController {
   constructor(private readonly kvService: KvServiceService) { }
 
   @Get('update')
-  @Render('index')
   async getCurrentServices() {
-    const services = await this.kvService.getCurrentServices();
-    return {services: services}
+    try {
+      await this.kvService.getCurrentServices();
+      this.kvService.sendMail()
+    } catch (e) {
+      Logger.error("Update failed." + e)
+    }
   }
 }
