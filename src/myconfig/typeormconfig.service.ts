@@ -16,8 +16,8 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       synchronize: true,
       logging: this.config.get('DB_LOG_LEVEL') || 'all',
     }
-    if (this.config.get('DB_URL') !== undefined) {
-      options.url = this.config.get('DB_URL');
+    if (this.config.get('DATABASE_URL') !== undefined) {
+      options.url = this.config.get('DATABBASE_URL');
     } else {
       // options.host = this.config.get('DB_HOST')
       // options.port = this.config.get('DB_PORT')
