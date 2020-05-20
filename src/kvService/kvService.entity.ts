@@ -37,7 +37,7 @@ export class KvService {
   }
 
   public get end(): string {
-    return this.prettyPrint(this.start_db)
+    return this.prettyPrint(this.end_db)
   }
 
   public set end(timestamp: string) {
