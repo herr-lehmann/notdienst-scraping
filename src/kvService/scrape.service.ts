@@ -40,7 +40,7 @@ export class ScrapeService {
           '--disable-setuid-sandbox',
         ],
       });
-      
+
       this.page = await browser.newPage();
 
       this.logger.debug('Navigating to KV', 'ScraperService')
@@ -61,7 +61,9 @@ export class ScrapeService {
 
         const result = await this.scrapeDiensteFrame()
         for (const serviceInMonth of result) {
-          this.services.push(KvService.parse(serviceInMonth, region.name))
+          const parsedService = KvService.parse(serviceInMonth, region.name)
+          if (parsedService)
+            this.services.push(parsedService)
         }
       }
       await this.page.goto(await this.logoutLink);
@@ -73,7 +75,7 @@ export class ScrapeService {
       return this.services;
     } catch (e) {
       this.logger.error("An error occured: " + e, '', 'ScraperService')
-      if (this.config.get('MODE') === 'local'){
+      if (this.config.get('MODE') === 'local') {
         await this.takeScreenshot()
       }
     }
