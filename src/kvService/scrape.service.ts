@@ -9,7 +9,7 @@ export class ScrapeService {
   private kvHamburgLoginUrl = 'https://www.ekvhh.de/eHealthPortal/login/index.xhtml';
   private diensteUrl = ''
 
-  private monthsInAdvance = 1;
+  private monthsInAdvance = 0;
   private desiredRegions = ['West', 'Ost', 'NW']
   private regions: Region[] = []
   private logoutLink: Promise<string>;
