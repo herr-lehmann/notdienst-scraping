@@ -2,9 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
 import { KvService } from './kvService.entity';
 import { ConfigService } from '@nestjs/config';
+import { SSL_OP_ALL } from 'constants';
 
 @Injectable()
 export class ScrapeService {
+  private static isBusyScraping = false;
   private page: puppeteer.Page;
   private kvHamburgLoginUrl = 'https://www.ekvhh.de/eHealthPortal/login/index.xhtml';
   private diensteUrl = ''
@@ -34,7 +36,12 @@ export class ScrapeService {
   }
 
   async scrapeKvHamburg(): Promise<KvService[]> {
+    if (ScrapeService.isBusyScraping) {
+      throw "Scraping process is already running.";
+    }
+
     try {
+      ScrapeService.isBusyScraping = true;
       this.logger.debug('Starting browser', 'ScraperService')
       let browser = await puppeteer.launch({
         args: [
@@ -80,6 +87,8 @@ export class ScrapeService {
       if (this.config.get('MODE') === 'local') {
         await this.takeScreenshot()
       }
+    } finally {
+      ScrapeService.isBusyScraping = false;
     }
   }
   private async saveLogoutLink(): Promise<void> {
@@ -138,7 +147,7 @@ export class ScrapeService {
       await this.page.waitFor('#caldata tbody');
       const result = await this.parseDienste()
       data = data.concat(result)
-      
+
       this.logger.debug(`Found #services: ${result.length}`, 'ScraperService')
       cycle++;
     } while (cycle < (this.monthsInAdvance + 1))

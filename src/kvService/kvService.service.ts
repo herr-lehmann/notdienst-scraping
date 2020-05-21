@@ -17,8 +17,13 @@ export class KvServiceService {
   ) { }
 
   public async getCurrentServices(): Promise<KvService[]> {
-    const services = await this.scraper.scrapeKvHamburg();
-    return this.repo.save(services)
+    try{
+      const services = await this.scraper.scrapeKvHamburg();
+      return this.repo.save(services)
+    }catch(e){
+      return Promise.reject(e)
+    }
+    
   }
   public async findAll(): Promise<KvService[]> {
     return this.repo.find({ order: { start_db: 'ASC' } });
