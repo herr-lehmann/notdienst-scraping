@@ -4,8 +4,8 @@ import moment = require('moment');
 @Entity()
 export class KvService {
   @PrimaryColumn() id: number
-  @Column('timestamp') private start_db: string;
-  @Column('timestamp') private end_db: string;
+  @Column('timestamp') start_db: string;
+  @Column('timestamp') end_db: string;
   @Column() kind: string;
   @Column() status: string;
   @Column() owner: string;

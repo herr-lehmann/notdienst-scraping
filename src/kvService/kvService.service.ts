@@ -21,15 +21,20 @@ export class KvServiceService {
     return this.repo.save(services)
   }
   public async findAll(): Promise<KvService[]> {
-    return this.repo.find();
+    return this.repo.find({ order: { start_db: 'ASC' } });
   }
 
   public async sendMail() {
     const services = await this.findAll();
 
+    let recipients = this.config.get('MAIL_RECEIVERS')
+    if (this.config.get('MODE') === 'local') {
+      recipients = 'henning@kuch.email'
+    }
+
     return this.mailer.sendMail({
-      to: this.config.get('MAIL_RECEIVERS'), 
-      subject: 'Aktuelle Notdienste 👨🏻‍⚕️', 
+      to: recipients,
+      subject: 'Aktuelle Notdienste 👨🏻‍⚕️',
       template: 'index',
       context: {
         services: services

@@ -29,6 +29,8 @@ export class ScrapeService {
     this.diensteUrl = `https://www.ekvhh.de/eHealthPortal/core/protected/extapp/proxy/1530/dienstplan/calendarlist?month=${currentMonth}&start_at=${currentYear}-${currentMonth}-01&year=${currentYear}`
     this.username = this.config.get('KV_USERNAME')
     this.password = this.config.get('KV_PASSWORD')
+    this.monthsInAdvance = Number.parseInt(this.config.get('KV_MONTHS_IN_ADVANCE'))
+    this.desiredRegions = this.config.get<String>('KV_REGIONS').split(',')
   }
 
   async scrapeKvHamburg(): Promise<KvService[]> {
@@ -121,24 +123,25 @@ export class ScrapeService {
   }
 
   private async crawlDienstePerMonth(): Promise<string[][]> {
-    this.logger.debug('Scraping current month', 'ScraperService')
     let cycle = 0
     let data: string[][] = []
 
+    this.logger.debug('Scraping current month', 'ScraperService')
     await this.page.waitFor(2000)
     do {
+      if (cycle > 0) {
+        this.logger.debug('Click on next month', 'ScraperService')
+        this.logger.debug(`Scraping ${cycle} month in advance`, 'ScraperService')
+        await this.page.waitFor('#calendar-control > div > div:nth-child(3) > a').then(elem => elem.click())
+        await this.page.waitForNavigation({ waitUntil: "networkidle0" })
+      }
       await this.page.waitFor('#caldata tbody');
       const result = await this.parseDienste()
-
       data = data.concat(result)
-
-      this.logger.debug('Click on next month', 'ScraperService')
-      await this.page.waitFor('#calendar-control > div > div:nth-child(3) > a').then(elem => elem.click())
-      await this.page.waitForNavigation({ waitUntil: "networkidle0" })
+      
+      this.logger.debug(`Found #services: ${result.length}`, 'ScraperService')
       cycle++;
-      this.logger.debug(`Scraping ${cycle} months in advance`, 'ScraperService')
-
-    } while (cycle < this.monthsInAdvance - 1);
+    } while (cycle < (this.monthsInAdvance + 1))
 
     return data;
   }
