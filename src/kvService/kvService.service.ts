@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ScrapeService } from './scrape.service';
-import { KvService } from './kvService.entity';
+import { KvService, KvServiceStatus } from './kvService.entity';
 import { Repository } from 'typeorm';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class KvServiceService {
@@ -17,16 +18,32 @@ export class KvServiceService {
   ) { }
 
   public async getCurrentServices(): Promise<KvService[]> {
-    try{
+    try {
       const services = await this.scraper.scrapeKvHamburg();
       return this.repo.save(services)
-    }catch(e){
+    } catch (e) {
       return Promise.reject(e)
     }
-    
+
   }
   public async findAll(): Promise<KvService[]> {
-    return this.repo.find({ order: { start_db: 'ASC' } });
+    return this.repo.find({
+      order: { start_db: 'ASC' },
+      where: [
+        { status: KvServiceStatus.TRADE_OPEN },
+        { status: KvServiceStatus.OPEN }
+      ]
+    });
+  }
+
+  /**
+   * update
+   */
+  @Cron(CronExpression.EVERY_QUARTER)
+  public async update() {
+    await this.getCurrentServices();
+    await this.sendMail();
+
   }
 
   public async sendMail() {

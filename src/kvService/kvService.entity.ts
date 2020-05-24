@@ -1,13 +1,41 @@
 import { Entity, Column, PrimaryColumn } from "typeorm";
 import moment = require('moment');
 
+
+export enum KvServiceStatus {
+  TRADE_OPEN = "Zum Tausch angeboten",
+  TRADE_PROPOSED = "Übernahmevorschlag eingegangen",
+  OPEN = "Zur Abgabe angeboten"
+}
+
+export enum KvServiceKind {
+  DAY = "Tagdienst",
+  LATE = "Spätdienst",
+  NIGHT = "tiefe Nacht",
+  REGULAR = "Werktagdienst",
+  BACKUP = "Reservedienst"
+}
+
 @Entity()
 export class KvService {
   @PrimaryColumn() id: number
   @Column('timestamp') start_db: string;
   @Column('timestamp') end_db: string;
-  @Column() kind: string;
-  @Column() status: string;
+  
+  @Column({
+    type: 'enum',
+    enum: KvServiceKind,
+    default: KvServiceKind.REGULAR
+  })
+  kind: KvServiceKind;
+
+  @Column({
+    type: 'enum',
+    enum: KvServiceStatus,
+    default: KvServiceStatus.OPEN
+  })
+  status: KvServiceStatus;
+
   @Column() owner: string;
   @Column() region: string;
 
@@ -21,6 +49,7 @@ export class KvService {
 
     const _start = moment(startDate + startTime, 'DD.MM.YYYY, -- HHmm');
     const _end = moment(endDate + endTime, 'DD.MM.YYYY, -- HHmm');
+    console.log(kind)
 
     return Object.assign(
       new KvService,
@@ -47,5 +76,4 @@ export class KvService {
   private prettyPrint(date: string) {
     return moment(date).format('DD.MM.YYYY, HH:mm')
   }
-
 }

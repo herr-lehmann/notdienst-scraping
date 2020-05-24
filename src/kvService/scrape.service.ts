@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
 import { KvService } from './kvService.entity';
 import { ConfigService } from '@nestjs/config';
-import { SSL_OP_ALL } from 'constants';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class ScrapeService {
@@ -171,7 +171,7 @@ export class ScrapeService {
         if (tds.length == 1) return [];
         // id: "line_248276"
         data.push(Number.parseInt(tr.id.substr(5)))
-        return data.concat(tds.map(td => td.textContent));
+        return data.concat(tds.map(td => td.textContent.trim()));
       })
     )
 

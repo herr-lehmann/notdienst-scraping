@@ -8,6 +8,8 @@ import { TypeOrmConfigService } from './myconfig/typeormconfig.service';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { MailerConfigService } from './myconfig/mailerconfig.service';
 import { MyConfigModule } from './myconfig/myconfig.module';
+import { ScheduleModule } from '@nestjs/schedule';
+
 
 
 @Module({
@@ -15,7 +17,6 @@ import { MyConfigModule } from './myconfig/myconfig.module';
     ConfigModule.forRoot({
       isGlobal: true
     }),
-    HttpModule,
     KvServiceModule,
     TypeOrmModule.forRootAsync({
       imports: [MyConfigModule],
@@ -24,7 +25,8 @@ import { MyConfigModule } from './myconfig/myconfig.module';
     MailerModule.forRootAsync({
       imports: [MyConfigModule],
       useExisting: MailerConfigService
-    })
+    }),
+    ScheduleModule.forRoot()
   ],
   providers: [
     Logger
