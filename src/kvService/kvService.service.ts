@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ScrapeService } from './scrape.service';
-import { KvService, KvServiceStatus } from './kvService.entity';
+import { KvService, KvServiceStatus, KvServiceKind } from './kvService.entity';
 import { Repository } from 'typeorm';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
@@ -27,13 +27,15 @@ export class KvServiceService {
 
   }
   public async findAll(): Promise<KvService[]> {
-    return this.repo.find({
-      order: { start_db: 'ASC' },
-      where: [
-        { status: KvServiceStatus.TRADE_OPEN },
-        { status: KvServiceStatus.OPEN }
-      ]
-    });
+    return this.repo.find();
+  }
+
+  public async findRelevant(): Promise<KvService[]>{
+    return this.repo.createQueryBuilder('kv_service')
+      .where('kv_service.status IN (:...status)', { status: [KvServiceStatus.OPEN] })
+      .andWhere('kv_service.kind NOT IN (:...kind)', { kind: [KvServiceKind.BACKUP, KvServiceKind.LATE_NIGHT] })
+      .andWhere("kv_service.updated > NOW() - interval '15 minutes'")
+      .getMany()
   }
 
   /**
@@ -42,13 +44,14 @@ export class KvServiceService {
   @Cron(CronExpression.EVERY_QUARTER)
   public async update() {
     await this.getCurrentServices();
-    await this.sendMail();
-
+    this.sendMail(await this.findRelevant())
   }
 
-  public async sendMail() {
-    const services = await this.findAll();
-
+  public async sendMail(services: KvService[]) {
+    if (services.length === 0) {
+      Logger.warn('Did not send empty mail', 'KvService');
+      return
+    }
     let recipients = this.config.get('MAIL_RECEIVERS')
     if (this.config.get('MODE') === 'local') {
       recipients = 'henning@kuch.email'

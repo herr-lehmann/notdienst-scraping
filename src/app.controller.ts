@@ -12,9 +12,9 @@ export class AppController {
   @Post('update')
   async triggerScraping(@Res() res: Response, @Query('no-mail') sendNoMail: string) {
     this.kvService.getCurrentServices()
-      .then(() => {
+      .then(async () => {
         if (sendNoMail === undefined) {
-          this.kvService.sendMail()
+          this.kvService.sendMail(await this.kvService.findRelevant())
         }
       })
       .catch((e) => Logger.error(e))
@@ -25,6 +25,13 @@ export class AppController {
   @Render('index')
   async listServices() {
     const services = await this.kvService.findAll();
+    return { services: services }
+  }
+
+  @Get('render/relevant')
+  @Render('index')
+  async listRelevantServices() {
+    const services = await this.kvService.findRelevant();
     return { services: services }
   }
 }
