@@ -12,7 +12,8 @@ export enum KvServiceStatus {
 export enum KvServiceKind {
   DAY = "Tagdienst",
   LATE = "Spätdienst",
-  NIGHT = "tiefe Nacht",
+  NIGHT = "Abenddienst",
+  LATE_NIGHT = "tiefe Nacht",
   REGULAR = "Werktagdienst",
   BACKUP = "Reservedienst"
 }
