@@ -1,11 +1,12 @@
-import { Entity, Column, PrimaryColumn } from "typeorm";
+import { Entity, Column, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import moment = require('moment');
 
 
 export enum KvServiceStatus {
   TRADE_OPEN = "Zum Tausch angeboten",
   TRADE_PROPOSED = "Übernahmevorschlag eingegangen",
-  OPEN = "Zur Abgabe angeboten"
+  OPEN = "Zur Abgabe angeboten",
+  TRANSFER_PROPOSED = "Abgabevorschlag abgegeben"
 }
 
 export enum KvServiceKind {
@@ -38,6 +39,7 @@ export class KvService {
 
   @Column() owner: string;
   @Column() region: string;
+  @UpdateDateColumn() updated: Date;
 
   private constructor() { }
   static parse(
@@ -49,7 +51,6 @@ export class KvService {
 
     const _start = moment(startDate + startTime, 'DD.MM.YYYY, -- HHmm');
     const _end = moment(endDate + endTime, 'DD.MM.YYYY, -- HHmm');
-    console.log(kind)
 
     return Object.assign(
       new KvService,
