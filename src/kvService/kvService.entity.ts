@@ -5,6 +5,7 @@ export enum KvServiceStatus {
   OPEN = 'Zur Abgabe angeboten',
   TRADE_OPEN = 'Zum Tausch angeboten',
   TRADE_PROPOSED = 'Tauschvorschlag abgegeben',
+  TRADE_PROPOSAL_RECEIVED = 'Tauschvorschlag eingegangen',
   TRANSFER_PROPOSED = 'Abgabevorschlag abgegeben',
   TRANSFER_PROPOSAL_RECEIVED = 'Übernahmevorschlag eingegangen',
 }
