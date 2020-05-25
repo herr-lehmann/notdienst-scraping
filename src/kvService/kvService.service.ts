@@ -41,7 +41,7 @@ export class KvServiceService {
   /**
    * update
    */
-  @Cron(CronExpression.EVERY_QUARTER)
+  @Cron(CronExpression.EVERY_30_MINUTES)
   public async update() {
     await this.getCurrentServices();
     this.sendMail(await this.findRelevant())
