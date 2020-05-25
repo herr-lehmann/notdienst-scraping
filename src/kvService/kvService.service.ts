@@ -34,14 +34,14 @@ export class KvServiceService {
     return this.repo.createQueryBuilder('kv_service')
       .where('kv_service.status IN (:...status)', { status: [KvServiceStatus.OPEN] })
       .andWhere('kv_service.kind NOT IN (:...kind)', { kind: [KvServiceKind.BACKUP, KvServiceKind.LATE_NIGHT] })
-      .andWhere("kv_service.updated > NOW() - interval '15 minutes'")
+      .andWhere("kv_service.updated > NOW() - interval '10 minutes'")
       .getMany()
   }
 
   /**
    * update
    */
-  @Cron(CronExpression.EVERY_30_MINUTES)
+  @Cron(CronExpression.EVERY_10_MINUTES)
   public async update() {
     await this.getCurrentServices();
     this.sendMail(await this.findRelevant())
