@@ -14,24 +14,24 @@ export class AppController {
     this.kvService.getCurrentServices()
       .then(async () => {
         if (sendNoMail === undefined) {
-          this.kvService.sendMail(await this.kvService.findRelevant())
+          this.kvService.sendMail(await this.kvService.findRelevant());
         }
       })
-      .catch((e) => Logger.error(e))
-    return res.sendStatus(202)
+      .catch((e) => Logger.error(e));
+    return res.sendStatus(202);
   }
 
   @Get('render')
   @Render('index')
   async listServices() {
     const services = await this.kvService.findAll();
-    return { services: services }
+    return { services };
   }
 
   @Get('render/relevant')
   @Render('index')
   async listRelevantServices() {
     const services = await this.kvService.findRelevant();
-    return { services: services }
+    return { services };
   }
 }

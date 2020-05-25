@@ -10,30 +10,25 @@ import { MailerConfigService } from './myconfig/mailerconfig.service';
 import { MyConfigModule } from './myconfig/myconfig.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
-
-
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true
+      isGlobal: true,
     }),
     KvServiceModule,
     TypeOrmModule.forRootAsync({
       imports: [MyConfigModule],
-      useExisting: TypeOrmConfigService
+      useExisting: TypeOrmConfigService,
     }),
     MailerModule.forRootAsync({
       imports: [MyConfigModule],
-      useExisting: MailerConfigService
+      useExisting: MailerConfigService,
     }),
-    ScheduleModule.forRoot()
+    ScheduleModule.forRoot(),
   ],
-  providers: [
-    Logger
-  ],
-  controllers: [AppController]
+  providers: [Logger],
+  controllers: [AppController],
 })
 export class AppModule {
   constructor(private connection: Connection) { }
-
 }

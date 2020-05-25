@@ -3,7 +3,6 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { AppModule } from './app.module';
 
-
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
@@ -13,8 +12,8 @@ async function bootstrap() {
   app.setViewEngine('hbs');
 
   let port = process.env.PORT;
-  if (port === "" || port === undefined) {
-    port = "3000";
+  if (port === '' || port === undefined) {
+    port = '3000';
   }
   await app.listen(port);
 

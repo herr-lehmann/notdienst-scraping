@@ -4,14 +4,13 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 import { join } from 'path';
 import { ConfigService } from '@nestjs/config';
 
-
 @Injectable()
 export class MailerConfigService implements MailerOptionsFactory {
-  constructor(private readonly config : ConfigService){}
+  constructor(private readonly config: ConfigService) { }
   createMailerOptions(): MailerOptions {
-    const login = this.config.get<String>('MAIL_USERNAME')
-    const domain = this.config.get<String>('MAIL_DOMAIN')
-    const pass = this.config.get<String>('MAIL_PASSWORD')
+    const login = this.config.get<string>('MAIL_USERNAME');
+    const domain = this.config.get<string>('MAIL_DOMAIN');
+    const pass = this.config.get<string>('MAIL_PASSWORD');
 
     return {
       transport: `smtps://${login}@${domain}:${pass}@smtp.${domain}`,
@@ -19,12 +18,12 @@ export class MailerConfigService implements MailerOptionsFactory {
         from: `"Notdienste Scraper" ${login}@${domain}`,
       },
       template: {
-        dir: join(__dirname, '..', '..','views'),
+        dir: join(__dirname, '..', '..', 'views'),
         adapter: new HandlebarsAdapter(),
         options: {
           strict: true,
         },
-      }
-    }
+      },
+    };
   }
 }
