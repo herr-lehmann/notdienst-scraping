@@ -53,7 +53,9 @@ export class ScrapeService {
       await this.saveLogoutLink();
       await this.navigateToiFrame();
 
-      await this.prepareRegions();
+      if (this.regions.length === 0) {
+        await this.prepareRegions();
+      }
 
       for (const region of this.regions) {
         this.logger.debug(`======== ${region.name} ========`, 'ScraperService');
