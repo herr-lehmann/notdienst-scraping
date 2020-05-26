@@ -56,7 +56,7 @@ export class KvServiceService {
       await this.getCurrentServices();
       this.sendMail(await this.findRelevant());
     } catch (e) {
-      Logger.error('Error during scraping', 'KvService');
+      Logger.error('Error during scraping', e , 'KvService');
     }
   }
 
