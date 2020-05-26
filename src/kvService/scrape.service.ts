@@ -8,7 +8,6 @@ export class ScrapeService {
   private static isBusyScraping = false;
   private page: puppeteer.Page;
   private kvHamburgLoginUrl = 'https://www.ekvhh.de/eHealthPortal/login/index.xhtml';
-  private diensteUrl = '';
 
   private monthsInAdvance = 0;
   private desiredRegions = ['West', 'Ost', 'NW'];
@@ -84,9 +83,7 @@ export class ScrapeService {
       return this.services;
     } catch (e) {
       this.logger.error('An error occured: ', e, 'ScraperService');
-      if (this.config.get('MODE') === 'local') {
-        await this.takeScreenshot();
-      }
+      await this.takeScreenshot();
     } finally {
       ScrapeService.isBusyScraping = false;
     }
@@ -133,7 +130,6 @@ export class ScrapeService {
 
   private async crawlDienstePerMonth(): Promise<string[][]> {
     await this.page.waitFor('#caldata tbody');
-    this.takeScreenshot();
     return await this.parseDienste();
   }
   /**
@@ -197,11 +193,12 @@ export class ScrapeService {
   }
 
   private async takeScreenshot() {
-    this.logger.debug('Preparing Screenshot', 'ScraperService');
-    // await this.page.waitFor(1000)
-    this.logger.debug('Taking Screenshot', 'ScraperService');
+    if (this.config.get('MODE') === 'local') {
+      this.logger.debug('Preparing Screenshot', 'ScraperService');
+      this.logger.debug('Taking Screenshot', 'ScraperService');
 
-    await this.page.screenshot({ path: `screens/screenshot_${new Date()}.png` });
+      await this.page.screenshot({ path: `screens/screenshot_${new Date()}.png` });
+    }
   }
 }
 
