@@ -23,15 +23,6 @@ export class ScrapeService {
     private readonly config: ConfigService,
     private readonly logger: Logger) {
 
-    const d = new Date();
-    const currentYear = d.getFullYear();
-    const currentMonth = d.getMonth() + 1;
-
-    this.diensteUrl = `
-    https://www.ekvhh.de/eHealthPortal/core/protected/extapp/proxy/1530/dienstplan/calendarlist
-    ?month=${currentMonth}&start_at=${currentYear}-${currentMonth}-01&year=${currentYear}
-    `;
-
     this.username = this.config.get('KV_USERNAME');
     this.password = this.config.get('KV_PASSWORD');
     this.monthsInAdvance = Number.parseInt(this.config.get('KV_MONTHS_IN_ADVANCE'), 10);
@@ -69,25 +60,30 @@ export class ScrapeService {
         this.logger.debug(`======== ${region.name} ========`, 'ScraperService');
         await this.page.select('#regionselector', region.value);
         await this.page.waitFor(2000);
-        await this.page.goto(this.diensteUrl);
 
-        const result = await this.scrapeDiensteFrame();
-        for (const serviceInMonth of result) {
-          const parsedService = KvService.parse(serviceInMonth, region.name);
-          if (parsedService) {
-            this.services.push(parsedService);
+        for (let month = 0; month <= this.monthsInAdvance; month++) {
+          await this.page.goto(this.getDiensteUrl(month));
+
+          this.logger.debug(`Scraping +${month} month(s) in advance`, 'ScraperService');
+          const result = await this.crawlDienstePerMonth();
+          this.logger.debug(`Found #services: ${result.length}`, 'ScraperService');
+
+          for (const serviceInMonth of result) {
+            const parsedService = KvService.parse(serviceInMonth, region.name);
+            if (parsedService) {
+              this.services.push(parsedService);
+            }
           }
         }
       }
       await this.page.goto(await this.logoutLink);
-
       await this.page.waitForNavigation();
 
       this.logger.debug('Closing Browser', 'ScraperService');
       browser.close();
       return this.services;
     } catch (e) {
-      this.logger.error('An error occured: ' + e, '', 'ScraperService');
+      this.logger.error('An error occured: ', e, 'ScraperService');
       if (this.config.get('MODE') === 'local') {
         await this.takeScreenshot();
       }
@@ -95,22 +91,22 @@ export class ScrapeService {
       ScrapeService.isBusyScraping = false;
     }
   }
+
+  private getDiensteUrl(monthsInAdvance: number) {
+    const d = new Date();
+    d.setMonth(d.getMonth() + monthsInAdvance);
+
+    const month = d.getMonth() + 1;
+    const year = d.getFullYear();
+
+    const url = `
+    https://www.ekvhh.de/eHealthPortal/core/protected/extapp/proxy/1530/dienstplan/calendarlist?month=${month}&start_at=${year}-${month}-01&year=${year}`;
+    return url;
+
+  }
   private async saveLogoutLink(): Promise<void> {
     const link = await this.page.waitForSelector('a.logoutlink');
     this.logoutLink = (await link.getProperty('href')).jsonValue();
-  }
-
-  private async scrapeDiensteFrame(): Promise<string[][]> {
-    this.logger.debug('-> "Tauschbörse"', 'ScraperService');
-    await this.page.waitForSelector('a#tausch_boerse', { visible: true }).then(elem => elem.click());
-
-    this.logger.debug('-> "Liste"', 'ScraperService');
-    await this.page.waitForSelector('a#calendar_list', { visible: true }).then(elem => elem.click());
-
-    this.logger.debug('Loading "Liste"', 'ScraperService');
-    await this.page.waitFor('#caldata tbody');
-
-    return await this.crawlDienstePerMonth();
   }
 
   private async prepareRegions(): Promise<void> {
@@ -136,27 +132,9 @@ export class ScrapeService {
   }
 
   private async crawlDienstePerMonth(): Promise<string[][]> {
-    let cycle = 0;
-    let data: string[][] = [];
-
-    this.logger.debug('Scraping current month', 'ScraperService');
-    await this.page.waitFor(2000);
-    do {
-      if (cycle > 0) {
-        this.logger.debug('Click on next month', 'ScraperService');
-        this.logger.debug(`Scraping ${cycle} month in advance`, 'ScraperService');
-        await this.page.waitFor('#calendar-control > div > div:nth-child(3) > a').then(elem => elem.click());
-        await this.page.waitForNavigation({ waitUntil: 'networkidle0' });
-      }
-      await this.page.waitFor('#caldata tbody');
-      const result = await this.parseDienste();
-      data = data.concat(result);
-
-      this.logger.debug(`Found #services: ${result.length}`, 'ScraperService');
-      cycle++;
-    } while (cycle < (this.monthsInAdvance + 1));
-
-    return data;
+    await this.page.waitFor('#caldata tbody');
+    this.takeScreenshot();
+    return await this.parseDienste();
   }
   /**
    * parse html to raw data
@@ -167,6 +145,7 @@ export class ScrapeService {
     return this.page.$$eval('#caldata tbody tr',
       // get all tds
       trs => trs.map(tr => {
+
         // expand all
         const tds = [...tr.getElementsByTagName('td')];
         const data = [];
@@ -178,7 +157,6 @@ export class ScrapeService {
         return data.concat(tds.map(td => td.textContent.trim()));
       }),
     );
-
   }
 
   private async navigateToAnwendung() {
@@ -222,7 +200,8 @@ export class ScrapeService {
     this.logger.debug('Preparing Screenshot', 'ScraperService');
     // await this.page.waitFor(1000)
     this.logger.debug('Taking Screenshot', 'ScraperService');
-    await this.page.screenshot({ path: 'screenshot.png' });
+
+    await this.page.screenshot({ path: `screens/screenshot_${new Date()}.png` });
   }
 }
 
