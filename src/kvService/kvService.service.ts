@@ -18,13 +18,23 @@ export class KvServiceService {
   ) { }
 
   public async getCurrentServices(): Promise<KvService[]> {
-    try {
-      const services = await this.scraper.scrapeKvHamburg();
-      return this.repo.save(services);
-    } catch (e) {
-      return Promise.reject(e);
-    }
+    const current = await this.scraper.scrapeKvHamburg();
+    const currentIds = current.map(service => service.id);
 
+    const all = await this.repo.find({ select: ['id'] });
+
+    const old = all.reduce((result, service) => {
+      if (!currentIds.includes(service.id)) {
+        result.push(service);
+      }
+      return result;
+    }, []);
+
+    return Promise.all([
+      this.repo.remove(old),
+      this.repo.save(current),
+    ])
+      .then(() => current);
   }
   public async findAll(): Promise<KvService[]> {
     return this.repo.find();
@@ -34,7 +44,6 @@ export class KvServiceService {
     return this.repo.createQueryBuilder('kv_service')
       .where('kv_service.status IN (:...status)', { status: [KvServiceStatus.OPEN] })
       .andWhere('kv_service.kind NOT IN (:...kind)', { kind: [KvServiceKind.BACKUP, KvServiceKind.LATE_NIGHT] })
-      .andWhere('kv_service.updated > NOW() - interval \'10 minutes\'')
       .getMany();
   }
 
@@ -43,8 +52,12 @@ export class KvServiceService {
    */
   @Cron(CronExpression.EVERY_10_MINUTES)
   public async update() {
-    await this.getCurrentServices();
-    this.sendMail(await this.findRelevant());
+    try {
+      await this.getCurrentServices();
+      this.sendMail(await this.findRelevant());
+    } catch (e) {
+      Logger.error('Error during scraping', 'KvService');
+    }
   }
 
   public async sendMail(services: KvService[]) {
