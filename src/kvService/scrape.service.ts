@@ -57,6 +57,7 @@ export class ScrapeService {
         await this.prepareRegions();
       }
 
+      this.services = [];
       for (const region of this.regions) {
         this.logger.debug(`======== ${region.name} ========`, 'ScraperService');
         await this.page.select('#regionselector', region.value);
