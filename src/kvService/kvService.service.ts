@@ -18,8 +18,8 @@ export class KvServiceService {
   ) { }
 
   public async getCurrentServices(): Promise<KvService[]> {
-    const current = await this.scraper.scrapeKvHamburg();
-    const currentIds = current.map(service => service.id);
+    const currents = await this.scraper.scrapeKvHamburg();
+    const currentIds = currents.map(service => service.id);
 
     const all = await this.repo.find({ select: ['id'] });
 
@@ -29,55 +29,73 @@ export class KvServiceService {
       }
       return result;
     }, []);
+    const toBeDeleted = [];
+    const toBeCreated = currents;
+    const toBeUpdated = [];
+
+    all.forEach(service => {
+      const existingServiceIndex = toBeCreated.findIndex((s) => s.id === service.id);
+      if (existingServiceIndex !== -1) {
+        const existingService = toBeCreated[existingServiceIndex];
+        if (!existingService.equals(service)) {
+          toBeUpdated.push(service);
+        }
+        toBeCreated.splice(existingServiceIndex, 1);
+      } else {
+        toBeDeleted.push(service);
+      }
+    });
 
     return Promise.all([
       this.repo.remove(old),
-      this.repo.save(current),
+      this.repo.save(toBeCreated.concat()),
     ])
-      .then(() => current);
+      .then(() => currents);
   }
+
   public async findAll(): Promise<KvService[]> {
-    return this.repo.find();
+    const result = await this.repo.find();
+    return KvService.sortByStartDate(result);
   }
 
   public async findRelevant(): Promise<KvService[]> {
     return this.repo.createQueryBuilder('kv_service')
       .where('kv_service.status IN (:...status)', { status: [KvServiceStatus.OPEN] })
       .andWhere('kv_service.kind NOT IN (:...kind)', { kind: [KvServiceKind.BACKUP, KvServiceKind.LATE_NIGHT] })
-      .getMany();
+      .getMany(); , ,
   }
 
   /**
    * update
    */
   @Cron(CronExpression.EVERY_10_MINUTES)
-  public async update() {
-    try {
-      await this.getCurrentServices();
-      this.sendMail(await this.findRelevant());
-    } catch (e) {
-      Logger.error('Error during scraping', e , 'KvService');
-    }
+  public async update(); {
+  try {
+    await this.getCurrentServices();
+    this.sendMail(await this.findRelevant());
+  } catch (e) {
+    Logger.error('Error during scraping', e, 'KvService');
+  }
+}
+
+  public async; sendMail(services: KvService[]); {
+  if (services.length === 0) {
+    Logger.warn('Did not send empty mail', 'KvService');
+    return;
+  }
+  let recipients = this.config.get('MAIL_RECEIVERS');
+  if (this.config.get('MODE') === 'local') {
+    recipients = 'henning@kuch.email';
   }
 
-  public async sendMail(services: KvService[]) {
-    if (services.length === 0) {
-      Logger.warn('Did not send empty mail', 'KvService');
-      return;
-    }
-    let recipients = this.config.get('MAIL_RECEIVERS');
-    if (this.config.get('MODE') === 'local') {
-      recipients = 'henning@kuch.email';
-    }
-
-    return this.mailer.sendMail({
-      to: recipients,
-      subject: 'Aktuelle Notdienste 👨🏻‍⚕️',
-      template: 'index',
-      context: {
-        services,
-      },
-    });
-  }
+  return this.mailer.sendMail({
+    to: recipients,
+    subject: 'Aktuelle Notdienste 👨🏻‍⚕️',
+    template: 'index',
+    context: {
+      services,
+    },
+  });
+}
 
 }

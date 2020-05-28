@@ -22,10 +22,13 @@ export enum KvServiceKind {
 @Entity()
 export class KvService {
   @PrimaryColumn() id: number;
-// tslint:disable-next-line: variable-name
-  @Column('timestamp') start_db: string;
-// tslint:disable-next-line: variable-name
-  @Column('timestamp') end_db: string;
+
+  @Column('timestamp')
+  // tslint:disable-next-line: variable-name
+  private _start: Date;
+  @Column('timestamp')
+  // tslint:disable-next-line: variable-name
+  private _end: Date;
 
   @Column({
     type: 'enum',
@@ -43,7 +46,10 @@ export class KvService {
 
   @Column() owner: string;
   @Column() region: string;
-  @UpdateDateColumn() updated: Date;
+
+  @UpdateDateColumn()
+  // tslint:disable-next-line: variable-name
+  private _updated: Date;
 
   private constructor() { }
   static parse(
@@ -51,12 +57,12 @@ export class KvService {
     region: string): KvService {
 
     if (id === undefined) { return; }
-// tslint:disable-next-line: variable-name
+    // tslint:disable-next-line: variable-name
     const _id = Number.parseInt(id, 10);
 
-// tslint:disable-next-line: variable-name
+    // tslint:disable-next-line: variable-name
     const _start = moment(startDate + startTime, 'DD.MM.YYYY, -- HHmm');
-// tslint:disable-next-line: variable-name
+    // tslint:disable-next-line: variable-name
     const _end = moment(endDate + endTime, 'DD.MM.YYYY, -- HHmm');
 
     return Object.assign(
@@ -66,22 +72,44 @@ export class KvService {
   }
 
   public get start(): string {
-    return this.prettyPrint(this.start_db);
+    return this.prettyPrint(this._start);
   }
 
   public set start(timestamp: string) {
-    this.start_db = timestamp;
+    this._start = moment(timestamp).toDate();
   }
 
   public get end(): string {
-    return this.prettyPrint(this.end_db);
+    return this.prettyPrint(this._end);
   }
 
   public set end(timestamp: string) {
-    this.end_db = timestamp;
+    this._end = moment(timestamp).toDate();
   }
 
-  private prettyPrint(date: string) {
+  public get updated(): string {
+    return this.prettyPrint(this._updated);
+  }
+
+  public set updated(timestamp: string) {
+    this._updated = moment(timestamp).toDate();
+  }
+
+  private prettyPrint(date: number | Date) {
     return moment(date).format('DD.MM.YYYY, HH:mm');
   }
+
+  equals(service: KvService): boolean {
+    return this.id === service.id
+      && this._start.valueOf() === service._start.valueOf()
+      && this._end.valueOf() === service._end.valueOf()
+      && this.region === service.region
+      && this.kind === service.kind
+      && this.owner === service.owner;
+  }
+
+  public static sortByStartDate(array: KvService[]): KvService[] {
+    return array.sort((a, b) => (a._start.valueOf() - b._start.valueOf()));
+  }
+
 }
