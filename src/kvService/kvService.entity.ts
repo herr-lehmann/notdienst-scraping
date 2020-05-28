@@ -11,12 +11,13 @@ export enum KvServiceStatus {
 }
 
 export enum KvServiceKind {
-  DAY = 'Tagdienst',
-  LATE = 'Spätdienst',
-  NIGHT = 'Abenddienst',
-  LATE_NIGHT = 'tiefe Nacht',
-  REGULAR = 'Werktagdienst',
   BACKUP = 'Reservedienst',
+  DAY = 'Tagdienst',
+  FRIDAY_1700 = 'Freitag ab 17 Uhr',
+  LATE = 'Spätdienst',
+  LATE_NIGHT = 'tiefe Nacht',
+  NIGHT = 'Abenddienst',
+  REGULAR = 'Werktagdienst',
 }
 
 @Entity()
@@ -51,6 +52,7 @@ export class KvService {
     region: string): KvService {
 
     if (id === undefined) { return; }
+
 // tslint:disable-next-line: variable-name
     const _id = Number.parseInt(id, 10);
 
