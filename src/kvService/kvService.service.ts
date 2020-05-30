@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ScrapeService } from './scrape.service';
 import { KvService, KvServiceStatus, KvServiceKind } from './kvService.entity';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -18,7 +18,13 @@ export class KvServiceService {
   ) { }
 
   public async getCurrentServices(): Promise<KvService[]> {
-    const currents = await this.scraper.scrapeKvHamburg();
+    let currents = [];
+    try {
+      currents = await this.scraper.scrapeKvHamburg();
+    } catch (e) {
+      Logger.error('Aborted Scraping', e);
+      return [];
+    }
     const all = await this.findAll();
 
     const toBeDeleted = [];
@@ -59,10 +65,18 @@ export class KvServiceService {
   }
 
   public async findRelevant(): Promise<KvService[]> {
+    return this.buildBaseQueryRelevantServices().getMany();
+  }
+  public async findRelevantChanged(): Promise<KvService[]> {
+    return this.buildBaseQueryRelevantServices()
+      .andWhere('kv_service._updated > CURRENT_TIMESTAMP - interval \'15 minutes\'')
+      .getMany();
+  }
+
+  private buildBaseQueryRelevantServices(): SelectQueryBuilder<KvService> {
     return this.repo.createQueryBuilder('kv_service')
       .where('kv_service.status IN (:...status)', { status: [KvServiceStatus.OPEN] })
-      .andWhere('kv_service.kind NOT IN (:...kind)', { kind: [KvServiceKind.BACKUP, KvServiceKind.LATE_NIGHT] })
-      .getMany();
+      .andWhere('kv_service.kind NOT IN (:...kind)', { kind: [KvServiceKind.BACKUP, KvServiceKind.LATE_NIGHT] });
   }
 
   /**
@@ -72,7 +86,7 @@ export class KvServiceService {
   public async update() {
     try {
       await this.getCurrentServices();
-      this.sendMail(await this.findRelevant());
+      this.sendMail(await this.findRelevantChanged());
     } catch (e) {
       Logger.error('Error during scraping', e, 'KvService');
     }
