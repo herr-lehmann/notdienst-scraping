@@ -27,30 +27,34 @@ export class KvServiceService {
     }
     const all = await this.findAll();
 
-    const toBeDeleted = [];
-    const toBeCreated = currents; // all new services are treated to created
-    const toBeUpdated = [];
+    const toBeDeleted: KvService[] = [];
+    const toBeCreated: KvService[] = currents; // all new services are treated to created
+    const toBeUpdated: KvService[] = [];
 
     // check all existing services
     all.forEach(service => {
       // check if any existing services are found in toBeCreated
-      const existingServiceIndex = toBeCreated.findIndex((s) => s.id === service.id);
+      const newServiceIndex = toBeCreated.findIndex((s) => s.id === service.id);
 
-      if (existingServiceIndex !== -1) {
+      if (newServiceIndex !== -1) {
         // get the found service for reference
-        const existingService = toBeCreated[existingServiceIndex];
+        const existingService = toBeCreated[newServiceIndex];
 
         // check if there were changes of properties
         if (!existingService.equals(service)) {
-          toBeUpdated.push(service); // update the service only if there where changes
+          toBeUpdated.push(existingService); // update the service only if there where changes
         }
         // because the service was found in exsting we remove it from the toBeCreated
-        toBeCreated.splice(existingServiceIndex, 1);
+        toBeCreated.splice(newServiceIndex, 1);
       } else {
         // if the services could not be found in the latest scrape, it needs to be removed
         toBeDeleted.push(service);
       }
     });
+
+    Logger.debug('Deletes: ' + toBeDeleted.length);
+    Logger.debug('Updates: ' + toBeUpdated.length);
+    Logger.debug('Creates: ' + toBeCreated.length);
 
     return Promise.all([
       this.repo.remove(toBeDeleted),

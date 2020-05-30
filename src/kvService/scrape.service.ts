@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
 import { KvService } from './kvService.entity';
 import { ConfigService } from '@nestjs/config';
+import moment = require('moment');
 
 @Injectable()
 export class ScrapeService {
@@ -26,6 +27,8 @@ export class ScrapeService {
     this.password = this.config.get('KV_PASSWORD');
     this.monthsInAdvance = Number.parseInt(this.config.get('KV_MONTHS_IN_ADVANCE'), 10);
     this.desiredRegions = this.config.get<string>('KV_REGIONS').split(',');
+
+    moment.locale('de');
   }
 
   async scrapeKvHamburg(): Promise<KvService[]> {
@@ -66,6 +69,17 @@ export class ScrapeService {
         for (let month = 0; month <= this.monthsInAdvance; month++) {
           await this.page.goto(this.getDiensteUrl(month));
 
+          const dateReference = moment().month(moment().month() + month).format('MMMM') + ' ' + moment().format('YYYY');
+          const dateActual = await this.page.$eval('#calendar-control-header', (e) => e.textContent.trim());
+          if (dateActual !== dateReference) {
+            throw new Error('Scraping wrong date');
+          }
+
+          const regionActual = await this.page.$eval('#regionselector > option[selected=selected]', (e) => e.textContent);
+          if (regionActual !== region.name) {
+            throw new Error('Scraping wrong region');
+          }
+
           this.logger.debug(`Scraping +${month} month(s) in advance`, 'ScraperService');
           const result = await this.crawlDienstePerMonth();
           this.logger.debug(`Found #services: ${result.length}`, 'ScraperService');
@@ -82,7 +96,7 @@ export class ScrapeService {
       await this.page.waitForNavigation();
 
       this.logger.debug('Closing Browser', 'ScraperService');
-      browser.close();
+      await browser.close();
       return this.services;
     } catch (e) {
       this.logger.error('An error occured: ', e, 'ScraperService');
@@ -93,17 +107,13 @@ export class ScrapeService {
   }
 
   private getDiensteUrl(monthsInAdvance: number) {
-    const d = new Date();
-    d.setMonth(d.getMonth() + monthsInAdvance);
+    const month = moment().month(moment().month() + monthsInAdvance).format('MM');
+    const year = moment().format('YYYY');
 
-    const month = d.getMonth() + 1;
-    const year = d.getFullYear();
-
-    const url = `
-    https://www.ekvhh.de/eHealthPortal/core/protected/extapp/proxy/1530/dienstplan/calendarlist?month=${month}&start_at=${year}-${month}-01&year=${year}`;
-    return url;
-
+    // tslint:disable-next-line: max-line-length
+    return `https://www.ekvhh.de/eHealthPortal/core/protected/extapp/proxy/1530/dienstplan/calendarlist?month=${month}&start_at=${year}-${month}-01&year=${year}`;
   }
+
   private async saveLogoutLink(): Promise<void> {
     const link = await this.page.waitForSelector('a.logoutlink');
     this.logoutLink = (await link.getProperty('href')).jsonValue();
