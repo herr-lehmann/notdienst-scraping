@@ -19,7 +19,7 @@ export class KvServiceService {
 
   public async getCurrentServices(): Promise<KvService[]> {
     const currents = await this.scraper.scrapeKvHamburg();
-    const all = await this.repo.find({ select: ['id'] });
+    const all = await this.findAll();
 
     const toBeDeleted = [];
     const toBeCreated = currents; // all new services are treated to created
