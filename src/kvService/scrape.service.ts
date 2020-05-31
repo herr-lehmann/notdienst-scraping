@@ -36,18 +36,17 @@ export class ScrapeService {
       throw new Error('Scraping process is already running.');
     }
 
+    ScrapeService.isBusyScraping = true;
+    this.logger.debug('Starting browser', 'ScraperService');
+    let browser: puppeteer.Browser;
     try {
-      ScrapeService.isBusyScraping = true;
-      this.logger.debug('Starting browser', 'ScraperService');
-      const browser = await puppeteer.launch({
+      browser = await puppeteer.launch({
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
         ],
       });
-
       this.page = await browser.newPage();
-
       this.logger.debug('Navigating to KV', 'ScraperService');
       await this.page.goto(this.kvHamburgLoginUrl);
 
@@ -92,16 +91,12 @@ export class ScrapeService {
           }
         }
       }
-      await this.page.goto(await this.logoutLink);
-      await this.page.waitForNavigation();
-
-      this.logger.debug('Closing Browser', 'ScraperService');
-      await browser.close();
     } catch (e) {
       this.logger.error('An error occured: ', e, 'ScraperService');
       await this.takeScreenshot();
       throw e;
     } finally {
+      this.logoutAndClose(browser);
       ScrapeService.isBusyScraping = false;
     }
     return this.services;
@@ -204,6 +199,14 @@ export class ScrapeService {
     // hit anmelden
     this.logger.debug('Submitting credentials ', 'ScraperService');
     return this.page.click('input.Btn1Def');
+  }
+
+  private async logoutAndClose(browser: puppeteer.Browser): Promise<any> {
+    await this.page.goto(await this.logoutLink);
+    await this.page.waitForNavigation();
+
+    this.logger.debug('Closing Browser', 'ScraperService');
+    await browser.close();
   }
 
   private async takeScreenshot() {
