@@ -97,13 +97,14 @@ export class ScrapeService {
 
       this.logger.debug('Closing Browser', 'ScraperService');
       await browser.close();
-      return this.services;
     } catch (e) {
       this.logger.error('An error occured: ', e, 'ScraperService');
       await this.takeScreenshot();
+      throw e;
     } finally {
       ScrapeService.isBusyScraping = false;
     }
+    return this.services;
   }
 
   private getDiensteUrl(monthsInAdvance: number) {
