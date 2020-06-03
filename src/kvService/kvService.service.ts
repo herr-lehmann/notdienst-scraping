@@ -73,7 +73,7 @@ export class KvServiceService {
   }
   public async findRelevantChanged(): Promise<KvService[]> {
     return this.buildBaseQueryRelevantServices()
-      .andWhere('kv_service._updated > CURRENT_TIMESTAMP - interval \'15 minutes\'')
+      .andWhere('kv_service._updated > CURRENT_TIMESTAMP - interval \'10 minutes\'')
       .getMany();
   }
 
