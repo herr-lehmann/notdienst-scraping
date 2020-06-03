@@ -18,6 +18,7 @@ export enum KvServiceKind {
   LATE_NIGHT = 'tiefe Nacht',
   NIGHT = 'Abenddienst',
   REGULAR = 'Werktagdienst',
+  WEDNESDAY_AFTERNOON = 'Mittwochnachmittag',
 }
 
 @Entity()
