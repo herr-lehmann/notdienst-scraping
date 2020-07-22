@@ -167,11 +167,11 @@ export class ScrapeService {
   private async navigateToAnwendung() {
     // find Anwendung
     this.logger.debug('-> "Anwendung"', 'ScraperService');
-    await this.page.waitFor('a[id="j_id55\:navid_1500"]').then(elem => elem.click());
+    await this.page.waitFor('a[id="j_id57\:navid_1500"]').then(elem => elem.click());
 
     // find ND-Online
     this.logger.debug('-> "ND-Online"', 'ScraperService');
-    await this.page.waitFor('a[id="j_id55\:navid_1530"]').then(elem => elem.click());
+    await this.page.waitFor('a[id="j_id57\:navid_1530"]').then(elem => elem.click());
   }
 
   private async navigateToiFrame(): Promise<void> {
@@ -202,11 +202,16 @@ export class ScrapeService {
   }
 
   private async logoutAndClose(browser: puppeteer.Browser): Promise<any> {
-    await this.page.goto(await this.logoutLink);
-    await this.page.waitForNavigation();
+    try {
+      await this.page.goto(await this.logoutLink);
+      await this.page.waitForNavigation();
+    } catch (e) {
 
-    this.logger.debug('Closing Browser', 'ScraperService');
-    await browser.close();
+    } finally {
+      this.logger.debug('Closing Browser', 'ScraperService');
+      await browser.close();
+    }
+
   }
 
   private async takeScreenshot() {
