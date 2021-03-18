@@ -7,7 +7,7 @@ import { ConfigService } from '@nestjs/config';
 export class TypeOrmConfigService implements TypeOrmOptionsFactory {
   constructor(
     private readonly config: ConfigService,
-    ) { }
+  ) { }
   createTypeOrmOptions(): TypeOrmModuleOptions {
     let options: { [key: string]: any };
     options = {
@@ -18,7 +18,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
     };
     if (this.config.get('DATABASE_URL') !== undefined) {
       options.url = this.config.get('DATABASE_URL');
-      options.extra = { ssl: true };
+      options.extra = { ssl: { rejectUnauthorized: false } };
     } else {
       options.database = this.config.get('DB_NAME');
     }
