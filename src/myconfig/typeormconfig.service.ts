@@ -18,6 +18,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
     };
     if (this.config.get('DATABASE_URL') !== undefined) {
       options.url = this.config.get('DATABASE_URL');
+      options.extra = { ssl: true };
     } else {
       options.database = this.config.get('DB_NAME');
     }
